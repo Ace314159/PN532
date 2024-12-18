@@ -2,14 +2,18 @@
 #include "NdefMessage.h"
 
 #if 0
+#define NFC_INTERFACE_SPI
 #include <SPI.h>
 #include <PN532_SPI.h>
+#include <PN532_SPI.cpp>
 #include "PN532.h"
 
   PN532_SPI pn532spi(SPI, 10);
   EmulateTag nfc(pn532spi);
 #elif 1
+#define NFC_INTERFACE_HSU
 #include <PN532_HSU.h>
+#include <PN532_HSU.cpp>
 #include <PN532.h>
 
 PN532_HSU pn532hsu(Serial1);
@@ -76,7 +80,7 @@ void loop()
 
     nfc.getContent(&tag_buf, &length);
     NdefMessage msg = NdefMessage(tag_buf, length);
-    msg.print();
+    // msg.print();
   }
 
   delay(1000);
