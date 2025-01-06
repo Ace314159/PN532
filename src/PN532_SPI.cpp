@@ -20,10 +20,11 @@ void PN532_SPI::begin()
     pinMode(_ss, OUTPUT);
 
     _spi->begin();
+    _spi->beginTransaction(SPISettings(1000000, LSBFIRST, SPI_MODE0));
 #if defined(ARDUINO_XIAO_RA4M1) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
 #else
-    _spi->setDataMode(SPI_MODE0); // PN532 only supports mode0
-    _spi->setBitOrder(LSBFIRST);
+    // _spi->setDataMode(SPI_MODE0); // PN532 only supports mode0
+    // _spi->setBitOrder(LSBFIRST);
 #if defined __SAM3X8E__
     /** DUE spi library does not support SPI_CLOCK_DIV8 macro */
     _spi->setClockDivider(42); // set clock 2MHz(max: 5MHz)
