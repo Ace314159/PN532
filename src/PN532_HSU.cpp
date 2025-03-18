@@ -3,33 +3,62 @@
 #include "PN532_HSU.h"
 #include "PN532_debug.h"
 
-PN532_HSU::PN532_HSU(HardwareSerial &serial)
+
+
+#ifdef ESP32
+
+PN532_HSU::PN532_HSU(HardwareSerial &serial, int8_t rxPin, int8_t txPin)
 {
-    _serial = &serial;
+    hsu_serial = &serial;
+    command = 0;
+    _rxPin = rxPin;
+    _txPin = txPin;
+}
+#else
+#ifdef USE_SOFT_SERIAL_PIN
+PN532_HSU::PN532_HSU(SoftwareSerial &serial){
+    hsu_serial = &serial;
     command = 0;
 }
+#else
+PN532_HSU::PN532_HSU(HardwareSerial &serial)
+{
+    hsu_serial = &serial;
+    command = 0;
+}
+#endif
+#endif
 
 void PN532_HSU::begin()
 {
-    _serial->begin(115200);
+
+#ifdef ESP32
+    get_serial(hsu_serial)->begin(115200, SERIAL_8N1, _rxPin, _txPin);
+#else
+#ifdef USE_SOFT_SERIAL_PIN
+    get_serial(hsu_serial)->begin(115200);
+#else
+    get_serial(hsu_serial)->begin(115200);
+#endif
+#endif
 }
 
 void PN532_HSU::wakeup()
 {
-    _serial->write(0x55);
-    _serial->write(0x55);
-    _serial->write(uint8_t(0x00));
-    _serial->write(uint8_t(0x00));
-    _serial->write(uint8_t(0x00));
+    get_serial(hsu_serial)->write(0x55);
+    get_serial(hsu_serial)->write(0x55);
+    get_serial(hsu_serial)->write(uint8_t(0x00));
+    get_serial(hsu_serial)->write(uint8_t(0x00));
+    get_serial(hsu_serial)->write(uint8_t(0x00));
 
     /** dump serial buffer */
-    if (_serial->available())
+    if (get_serial(hsu_serial)->available())
     {
         DMSG("Dump serial buffer: ");
     }
-    while (_serial->available())
+    while (get_serial(hsu_serial)->available())
     {
-        uint8_t ret = _serial->read();
+        uint8_t ret = get_serial(hsu_serial)->read();
         DMSG_HEX(ret);
     }
 }
@@ -38,32 +67,32 @@ int8_t PN532_HSU::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
 {
 
     /** dump serial buffer */
-    if (_serial->available())
+    if (get_serial(hsu_serial)->available())
     {
         DMSG("Dump serial buffer: ");
     }
-    while (_serial->available())
+    while (get_serial(hsu_serial)->available())
     {
-        uint8_t ret = _serial->read();
+        uint8_t ret = get_serial(hsu_serial)->read();
         DMSG_HEX(ret);
     }
 
     command = header[0];
 
-    _serial->write(uint8_t(PN532_PREAMBLE));
-    _serial->write(uint8_t(PN532_STARTCODE1));
-    _serial->write(uint8_t(PN532_STARTCODE2));
+    get_serial(hsu_serial)->write(uint8_t(PN532_PREAMBLE));
+    get_serial(hsu_serial)->write(uint8_t(PN532_STARTCODE1));
+    get_serial(hsu_serial)->write(uint8_t(PN532_STARTCODE2));
 
     uint8_t length = hlen + blen + 1; // length of data field: TFI + DATA
-    _serial->write(length);
-    _serial->write(~length + 1); // checksum of length
+    get_serial(hsu_serial)->write(length);
+    get_serial(hsu_serial)->write(~length + 1); // checksum of length
 
-    _serial->write(PN532_HOSTTOPN532);
+    get_serial(hsu_serial)->write(PN532_HOSTTOPN532);
     uint8_t sum = PN532_HOSTTOPN532; // sum of TFI + DATA
 
     DMSG("\nWrite: ");
 
-    _serial->write(header, hlen);
+    get_serial(hsu_serial)->write(header, hlen);
     for (uint8_t i = 0; i < hlen; i++)
     {
         sum += header[i];
@@ -71,7 +100,7 @@ int8_t PN532_HSU::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
         DMSG_HEX(header[i]);
     }
 
-    _serial->write(body, blen);
+    get_serial(hsu_serial)->write(body, blen);
     for (uint8_t i = 0; i < blen; i++)
     {
         sum += body[i];
@@ -80,8 +109,8 @@ int8_t PN532_HSU::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
     }
 
     uint8_t checksum = ~sum + 1; // checksum of TFI + DATA
-    _serial->write(checksum);
-    _serial->write(uint8_t(PN532_POSTAMBLE));
+    get_serial(hsu_serial)->write(checksum);
+    get_serial(hsu_serial)->write(uint8_t(PN532_POSTAMBLE));
 
     return readAckFrame();
 }
@@ -195,7 +224,7 @@ int8_t PN532_HSU::receive(uint8_t *buf, int len, uint16_t timeout)
         start_millis = millis();
         do
         {
-            ret = _serial->read();
+            ret = get_serial(hsu_serial)->read();
             if (ret >= 0)
             {
                 break;

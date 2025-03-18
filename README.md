@@ -95,6 +95,18 @@ HSU is short for High Speed Uart. HSU interface needs only 4 wires to connect PN
 To use the `Serial1` control PN532, refer to the code below.
 
 ```c++
+/* If you need to specify the pin: For ESP32, you can use PN532_HSU pn532hsu(Serial1, 36, 4) to specify the pin;
+For other series that support soft serial port, you can use the soft serial port to specify the pin:
+#define USE_SOFT_SERIAL_PIN
+#define NFC_INTERFACE_HSU
+#include <PN532_HSU.h>
+#include <PN532.h>
+
+SoftwareSerial mysoft_serial(D7,D6);
+PN532_HSU pn532hsu(mysoft_serial);
+PN532 nfc(pn532hsu);
+*/ 
+
 #define NFC_INTERFACE_HSU
 
 #include <PN532_HSU.h>
