@@ -42,7 +42,7 @@
   },
   "dependencies": [
     {
-      "name": "external-repo",
+      "name": "NDEF",
       "version": "https://github.com/don/NDEF"
     }
   ],
