@@ -21,6 +21,7 @@ void PN532_SPI::begin()
 
     _spi->begin();
     _spi->beginTransaction(SPISettings(1000000, LSBFIRST, SPI_MODE0));
+    _spi->endTransaction();
 #if defined(ARDUINO_XIAO_RA4M1) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
 #else
     // _spi->setDataMode(SPI_MODE0); // PN532 only supports mode0
