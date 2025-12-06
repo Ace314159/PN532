@@ -334,7 +334,7 @@ bool PN532::SAMConfig(void)
     if (HAL(writeCommand)(pn532_packetbuffer, 4))
         return false;
 
-    return (0 < HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 == HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -377,7 +377,7 @@ bool PN532::setPassiveActivationRetries(uint8_t maxRetries)
     if (HAL(writeCommand)(pn532_packetbuffer, 5))
         return 0x0; // no ACK
 
-    return (0 < HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    return (0 == HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -894,7 +894,7 @@ uint8_t PN532::mifareultralight_WritePage(uint8_t page, uint8_t *buffer)
     @param  responseLength  Pointer to the response data length
 */
 /**************************************************************************/
-bool PN532::inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
+bool PN532::inDataExchange(const uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
 {
     uint8_t i;
 
@@ -946,7 +946,7 @@ bool PN532::inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response,
     @param  responseLength  Pointer to the response data length
 */
 /**************************************************************************/
-bool PN532::inCommunicateThru(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
+bool PN532::inCommunicateThru(const uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
 {
     pn532_packetbuffer[0] = PN532_COMMAND_INCOMMUNICATETHRU;
 
@@ -989,6 +989,27 @@ bool PN532::inCommunicateThru(uint8_t *send, uint8_t sendLength, uint8_t *respon
 
 /**************************************************************************/
 /*!
+    This command is used to send data via inCommunicateThru
+    without expecting a response. Used for sending ECP frames.
+
+    @param  send            Pointer to the command buffer
+    @param  sendLength      Command length in bytes
+*/
+/**************************************************************************/
+bool PN532::inCommunicateThru(const uint8_t *send, uint8_t sendLength)
+{
+    pn532_packetbuffer[0] = PN532_COMMAND_INCOMMUNICATETHRU;
+
+    if (HAL(writeCommand)(pn532_packetbuffer, 1, send, sendLength))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/**************************************************************************/
+/*!
     @brief  'InLists' a passive target. PN532 acting as reader/initiator,
             peer acting as card/responder.
 */
@@ -1011,7 +1032,7 @@ bool PN532::inListPassiveTarget()
     {
         return false;
     }
-
+    
     if (pn532_packetbuffer[0] != 1)
     {
         return false;

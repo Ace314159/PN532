@@ -160,8 +160,9 @@ public:
     bool inListPassiveTarget();
     bool startPassiveTargetIDDetection(uint8_t cardbaudrate);
     bool readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout = 1000, bool inlist = false);
-    bool inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
-    bool inCommunicateThru(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
+    bool inDataExchange(const uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
+    bool inCommunicateThru(const uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
+    bool inCommunicateThru(const uint8_t *send, uint8_t sendLength);
 
     // Mifare Classic functions
     bool mifareclassic_IsFirstBlock(uint32_t uiBlock);
@@ -204,7 +205,7 @@ private:
     uint8_t _felicaIDm[8]; // FeliCa IDm (NFCID2)
     uint8_t _felicaPMm[8]; // FeliCa PMm (PAD)
 
-    uint8_t pn532_packetbuffer[64];
+    uint8_t pn532_packetbuffer[255];
 
     PN532Interface *_interface;
 };
